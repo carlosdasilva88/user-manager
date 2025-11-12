@@ -23,27 +23,56 @@ paths:
     get:
       tags:
         - Users
-      summary: Listar todos os usuários
-      description: Retorna uma lista com todos os usuários cadastrados no sistema
+      summary: Listar usuários com paginação
+      description: Retorna uma lista paginada de usuários cadastrados no sistema. Use os parâmetros page, size e sort para controlar a paginação.
       operationId: findAllUsers
+      parameters:
+        - name: page
+          in: query
+          description: Número da página (começa em 0)
+          required: false
+          schema:
+            type: integer
+            default: 0
+            example: 0
+        - name: size
+          in: query
+          description: Tamanho da página
+          required: false
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: sort
+          in: query
+          description: Campo para ordenação (ex: name,asc ou createAt,desc)
+          required: false
+          schema:
+            type: string
+            example: "name,asc"
       responses:
         '200':
-          description: Lista de usuários retornada com sucesso
+          description: Lista paginada de usuários retornada com sucesso
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserData'
+                $ref: '#/components/schemas/PageResponse'
               example:
-                - id: 1
-                  name: "João Silva"
-                  email: "joao.silva@example.com"
-                  createAt: "2024-01-15T10:30:00"
-                - id: 2
-                  name: "Maria Santos"
-                  email: "maria.santos@example.com"
-                  createAt: "2024-01-16T14:20:00"
+                content:
+                  - id: 1
+                    name: "João Silva"
+                    email: "joao.silva@example.com"
+                    createAt: "2024-01-15T10:30:00"
+                  - id: 2
+                    name: "Maria Santos"
+                    email: "maria.santos@example.com"
+                    createAt: "2024-01-16T14:20:00"
+                totalElements: 50
+                totalPages: 5
+                currentPage: 0
+                pageSize: 10
+                hasNext: true
+                hasPrevious: false
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -234,6 +263,49 @@ components:
         - name
         - email
         - createAt
+
+    PageResponse:
+      type: object
+      description: Resposta paginada
+      properties:
+        content:
+          type: array
+          description: Lista de itens da página atual
+          items:
+            $ref: '#/components/schemas/UserData'
+        totalElements:
+          type: integer
+          format: int64
+          description: Total de elementos em todas as páginas
+          example: 50
+        totalPages:
+          type: integer
+          description: Total de páginas
+          example: 5
+        currentPage:
+          type: integer
+          description: Página atual (baseado em zero)
+          example: 0
+        pageSize:
+          type: integer
+          description: Tamanho da página
+          example: 10
+        hasNext:
+          type: boolean
+          description: Indica se existe próxima página
+          example: true
+        hasPrevious:
+          type: boolean
+          description: Indica se existe página anterior
+          example: false
+      required:
+        - content
+        - totalElements
+        - totalPages
+        - currentPage
+        - pageSize
+        - hasNext
+        - hasPrevious
 
     Error:
       type: object
